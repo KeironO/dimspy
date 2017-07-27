@@ -37,7 +37,14 @@ def remove_edges(pls_sd):
     if type(pls_sd) is not dict and type(pls_sd) is not collections.OrderedDict:
         raise TypeError("Incorrect format - dict or collections.OrderedDict required")
 
-    mzrs = [mz_range_from_header(h) for h in pls_sd]
+    # Temp fix  lock mass (2)
+    mzrs = []
+    for h in pls_sd:
+        mzr = mz_range_from_header(h)
+        if mzr not in mzrs:
+            mzrs.append(mzr)
+    # End temp fix  lock mass (2)
+
     new_mzrs = _calculate_edges(mzrs)
     for h in pls_sd.keys():
         mz_ranges = len(pls_sd[h]) * [new_mzrs[pls_sd.keys().index(h)]]

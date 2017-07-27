@@ -68,7 +68,17 @@ def process_scans(source, function_noise, snr_thres, ppm, min_fraction=None, rsd
                 pls_scans[h] = [filter_mz_ranges(pl, remove_mz_range) for pl in pls_scans[h] if len(pl.mz) > 0]
 
         if not skip_stitching:
-            mz_ranges = [mz_range_from_header(h) for h in pls_scans]
+            # Temp fix lock mass (1)
+            mz_ranges = []
+            for h in pls_scans:
+                mzr = mz_range_from_header(h)
+                if mzr not in mz_ranges:
+                    mz_ranges.append(mzr)
+                else:
+                    del pls_scans[h]
+                    print mzr, h, "exclude from SIM-Stitching"
+            # End temp fix  lock mass(1)
+
             exp = interpret_experiment(mz_ranges)
             if exp == "overlapping":
                 print "Removing 'edges' from SIM windows....."
@@ -82,7 +92,10 @@ def process_scans(source, function_noise, snr_thres, ppm, min_fraction=None, rsd
 
         print "Removing noise....."
         for h in pls_scans:
-            pls_scans[h] = [filter_attr(pl, "snr", min_threshold=snr_thres) for pl in pls_scans[h] if len(pl.mz) > 0]
+
+            # Temp fix  lock mass (3)
+            pls_scans[h] = [filter_attr(pl, "snr", min_threshold=snr_thres) for pl in pls_scans[h][0:1] if len(pl.mz) > 0]
+            # End temp fix  lock mass (3)
 
         print "Aligning, averaging and filtering peaks....."
         pls_avg = []
